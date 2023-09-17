@@ -1,8 +1,11 @@
 # CommerceQuest.space Changelog
 
-## 1.1.0 - 2023-09-17
+## [Public Release] - 2023-09-17
+- Cleanup and refactoring for initial public release of Extension
+
+## [Control Number of Search Results] - 2023-09-17
 - Added preference to control number of search results
 
-## 1.0.0 - 2023-09-17
-- Setup extension
+## [Initial Release] - 2023-09-17
+- Initial setup of extension
 - Added first command to search the forum

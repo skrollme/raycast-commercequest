@@ -85,33 +85,44 @@ async function parseFetchResponse(response: Response) {
     throw new Error("message" in json ? json.message : response.statusText);
   }
 
-  return json.map((result) => {
-    let breadcrumbFormatted = "";
-    if (result.breadcrumbs) {
-      // remove first breadcrumb, it is always "home"
-      result.breadcrumbs.shift();
+  return json.map(
+    (result: {
+      breadcrumbs: { name: string }[];
+      recordID: any;
+      name: any;
+      recordType: any;
+      type: any;
+      dateUpdated: any;
+      dateInserted: any;
+      url: any;
+    }) => {
+      let breadcrumbFormatted = "";
+      if (result.breadcrumbs) {
+        // remove first breadcrumb, it is always "home"
+        result.breadcrumbs.shift();
 
-      // remove second one from array and add as start for breadcrumbs
-      const secondBreadcrumb = result.breadcrumbs.shift();
-      breadcrumbFormatted = secondBreadcrumb.name;
+        // remove second one from array and add as start for breadcrumbs
+        const secondBreadcrumb = result.breadcrumbs.shift();
+        breadcrumbFormatted += secondBreadcrumb?.name;
 
-      // suffix remaining breadcrumbs
-      result.breadcrumbs.forEach(function (item: { name: string }) {
-        breadcrumbFormatted = breadcrumbFormatted + " » " + item.name;
-      });
+        // suffix remaining breadcrumbs
+        result.breadcrumbs.forEach(function (item: { name: string }) {
+          breadcrumbFormatted = breadcrumbFormatted + " » " + item.name;
+        });
+      }
+
+      return {
+        recordID: result.recordID,
+        name: result.name,
+        recordType: result.recordType,
+        type: result.type,
+        dateUpdated: result.dateUpdated,
+        dateInserted: result.dateInserted,
+        url: result.url,
+        breadcrumbs: breadcrumbFormatted,
+      } as SearchResult;
     }
-
-    return {
-      recordID: result.recordID,
-      name: result.name,
-      recordType: result.recordType,
-      type: result.type,
-      dateUpdated: result.dateUpdated,
-      dateInserted: result.dateInserted,
-      url: result.url,
-      breadcrumbs: breadcrumbFormatted,
-    } as SearchResult;
-  });
+  );
 }
 
 interface SearchResult {

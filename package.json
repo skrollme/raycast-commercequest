@@ -1,21 +1,21 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "commercequest-space",
-  "title": "CommerceQuest.space",
-  "description": "Access Spryker's CommerceQuest forum",
+  "name": "commercequest",
+  "title": "CommerceQuest",
+  "description": "Access Spryker's CommerceQuest.space forum",
   "icon": "command-icon.png",
   "author": "skroll",
   "categories": [
-    "Developer Tools",
+    "Web",
     "Documentation"
   ],
   "license": "MIT",
   "commands": [
     {
-      "name": "index",
-      "title": "CommerceQuest Search",
-      "subtitle": "Search the forum",
-      "description": "Search Spryker's CommerceQuest forum",
+      "name": "search",
+      "title": "Search Forum",
+      "subtitle": "CommerceQuest",
+      "description": "Search Spryker's CommerceQuest Forum",
       "mode": "view"
     }
   ],
@@ -24,8 +24,8 @@
       "name": "numSearchResults",
       "type": "dropdown",
       "required": false,
-      "title": "Searchresults",
-      "description": "Number of searchresults to fetch",
+      "title": "Search Results",
+      "description": "Number of search results to fetch",
       "default": "10",
       "data": [
         {
