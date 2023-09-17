@@ -2,6 +2,12 @@ import { ActionPanel, Action, List, Icon, getPreferenceValues } from "@raycast/a
 import { useFetch, Response } from "@raycast/utils";
 import { useState } from "react";
 import { URLSearchParams } from "node:url";
+import { mapIconCode } from "./lib/utils";
+
+import Preview from "./components/Preview";
+import SearchResult from "./interfaces/SearchResult";
+import User from "./interfaces/User";
+import Breadcrumb from "./interfaces/Breadcrumb";
 
 export default function Command() {
   const [searchText, setSearchText] = useState("");
@@ -14,6 +20,7 @@ export default function Command() {
   });
   searchParams.append("expand", "breadcrumbs");
   searchParams.append("expand", "-body");
+  searchParams.append("expand", "insertUser");
 
   const { data, isLoading } = useFetch("https://commercequest.space/api/v2/search?" + searchParams, {
     parseResponse: parseFetchResponse,
@@ -38,38 +45,22 @@ export default function Command() {
 }
 
 function SearchListItem({ searchResult }: { searchResult: SearchResult }) {
-  let iconCode;
-  switch (searchResult.type) {
-    case "discussion":
-      iconCode = Icon.SpeechBubbleActive;
-      break;
-    case "idea":
-      iconCode = Icon.LightBulb;
-      break;
-    case "question":
-      iconCode = Icon.QuestionMark;
-      break;
-    case "category":
-      iconCode = Icon.Layers;
-      break;
-    default:
-      iconCode = Icon.Circle;
-      break;
-  }
-
   return (
     <List.Item
       title={searchResult.name}
       keywords={[searchResult.recordType]}
-      subtitle={searchResult.breadcrumbs}
+      subtitle={searchResult.breadcrumbsFormatted}
       accessories={[
         { date: new Date(searchResult.dateUpdated ? searchResult.dateUpdated : searchResult.dateInserted) },
       ]}
-      icon={iconCode}
+      icon={mapIconCode(searchResult.type)}
       actions={
         <ActionPanel>
           <ActionPanel.Section>
             <Action.OpenInBrowser title="Open in Browser" url={searchResult.url} />
+            {searchResult.type != "category" ? (
+              <Action.Push title="Preview" target={<Preview searchResult={searchResult} />} />
+            ) : null}
           </ActionPanel.Section>
         </ActionPanel>
       }
@@ -87,28 +78,45 @@ async function parseFetchResponse(response: Response) {
 
   return json.map(
     (result: {
-      breadcrumbs: { name: string }[];
-      recordID: any;
-      name: any;
-      recordType: any;
-      type: any;
-      dateUpdated: any;
-      dateInserted: any;
-      url: any;
+      breadcrumbs: Breadcrumb[];
+      recordID: string;
+      name: string;
+      recordType: string;
+      type: string;
+      dateUpdated: string;
+      dateInserted: string;
+      url: string;
+      bodyPlainText: string;
+      body: string;
+      insertUser?: User;
     }) => {
-      let breadcrumbFormatted = "";
+      let breadcrumbsFormatted = "";
+      const breadcrumbs: Breadcrumb[] = [];
       if (result.breadcrumbs) {
         // remove first breadcrumb, it is always "home"
         result.breadcrumbs.shift();
 
         // remove second one from array and add as start for breadcrumbs
         const secondBreadcrumb = result.breadcrumbs.shift();
-        breadcrumbFormatted += secondBreadcrumb?.name;
+        breadcrumbsFormatted += secondBreadcrumb?.name;
+        breadcrumbs.push(secondBreadcrumb);
 
         // suffix remaining breadcrumbs
-        result.breadcrumbs.forEach(function (item: { name: string }) {
-          breadcrumbFormatted = breadcrumbFormatted + " » " + item.name;
+        result.breadcrumbs.forEach(function (breadcrumb: Breadcrumb) {
+          breadcrumbsFormatted = breadcrumbsFormatted + " » " + breadcrumb.name;
+          breadcrumbs.push(breadcrumb);
         });
+      }
+
+      let insertUser = null;
+      if (result.insertUser) {
+        insertUser = {
+          name: result.insertUser.name,
+          photoUrl: result.insertUser.photoUrl,
+          url: result.insertUser.url,
+          label: result.insertUser.label,
+          title: result.insertUser.title,
+        } as User;
       }
 
       return {
@@ -119,19 +127,12 @@ async function parseFetchResponse(response: Response) {
         dateUpdated: result.dateUpdated,
         dateInserted: result.dateInserted,
         url: result.url,
-        breadcrumbs: breadcrumbFormatted,
+        breadcrumbsFormatted: breadcrumbsFormatted,
+        breadcrumbs: breadcrumbs,
+        bodyPlainText: result.bodyPlainText,
+        body: result.body,
+        insertUser: insertUser,
       } as SearchResult;
     }
   );
-}
-
-interface SearchResult {
-  recordID: string;
-  name: string;
-  recordType: string;
-  type: string;
-  dateUpdated: string;
-  dateInserted: string;
-  url: string;
-  breadcrumbs: string;
 }

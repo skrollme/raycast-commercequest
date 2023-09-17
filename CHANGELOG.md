@@ -1,5 +1,8 @@
 # CommerceQuest.space Changelog
 
+## [Detail View] - 2023-09-18
+- Added a Detailview with a preview of a forum-thread
+
 ## [Public Release] - 2023-09-17
 - Cleanup and refactoring for initial public release of Extension
 
