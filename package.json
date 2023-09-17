@@ -19,6 +19,30 @@
       "mode": "view"
     }
   ],
+  "preferences": [
+    {
+      "name": "numSearchResults",
+      "type": "dropdown",
+      "required": false,
+      "title": "Searchresults",
+      "description": "Number of searchresults to fetch",
+      "default": "10",
+      "data": [
+        {
+          "title": "10",
+          "value": "10"
+        },
+        {
+          "title": "25",
+          "value": "25"
+        },
+        {
+          "title": "50",
+          "value": "50"
+        }
+      ]
+    }
+  ],
   "dependencies": {
     "@raycast/api": "^1.57.1",
     "@raycast/utils": "^1.4.8"

@@ -1,4 +1,4 @@
-import { ActionPanel, Action, List, Icon } from "@raycast/api";
+import { ActionPanel, Action, List, Icon, getPreferenceValues } from "@raycast/api";
 import { useFetch, Response } from "@raycast/utils";
 import { useState } from "react";
 import { URLSearchParams } from "node:url";
@@ -9,7 +9,7 @@ export default function Command() {
     domain: "all_content",
     query: searchText.length === 0 ? "" : searchText,
     collapse: "true",
-    limit: "10",
+    limit: getPreferenceValues().numSearchResults,
     locale: "en",
   });
   searchParams.append("expand", "breadcrumbs");
