@@ -1,6 +1,6 @@
 import { Action, ActionPanel, Detail, Icon, open } from "@raycast/api";
 import TurndownService from "turndown";
-import SearchResult from "../interfaces/SearchResult";
+import { SearchResult } from "../lib/types";
 import { mapIconCode } from "../lib/utils";
 
 const Preview = ({ searchResult }: { searchResult: SearchResult }) => {
@@ -39,7 +39,7 @@ const Preview = ({ searchResult }: { searchResult: SearchResult }) => {
               <Detail.Metadata.TagList.Item
                 key={breadcrumb.url}
                 text={breadcrumb.name}
-                color={"#00aeef"}
+                color={"#ec008c"}
                 onAction={() => {
                   open(breadcrumb.url);
                 }}

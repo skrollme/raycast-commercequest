@@ -5,14 +5,41 @@ import { URLSearchParams } from "node:url";
 import { mapIconCode } from "./lib/utils";
 
 import Preview from "./components/Preview";
-import SearchResult from "./interfaces/SearchResult";
-import User from "./interfaces/User";
-import Breadcrumb from "./interfaces/Breadcrumb";
+import { Breadcrumb, User, SearchResult, ItemType } from "./lib/types";
 
-export default function Command() {
-  const [searchText, setSearchText] = useState("");
+const itemTypes: ItemType[] = [
+  { id: "", name: "All" },
+  { id: "article", name: "Articles" },
+  { id: "discussion", name: "Discussions" },
+  { id: "comment", name: "Comments" },
+  { id: "question", name: "Questions" },
+  { id: "answer", name: "Answers" },
+  { id: "group", name: "Groups" },
+  { id: "poll", name: "Polls" },
+];
+
+function ItemTypeDropdown(props: { itemTypes: ItemType[]; onItemTypeChange: (newValue: string) => void }) {
+  const { itemTypes, onItemTypeChange } = props;
+  return (
+    <List.Dropdown
+      tooltip="Select Type"
+      defaultValue=""
+      storeValue={true}
+      onChange={(newValue) => {
+        onItemTypeChange(newValue);
+      }}
+    >
+      <List.Dropdown.Section title="Item Types">
+        {itemTypes.map((itemType) => (
+          <List.Dropdown.Item key={itemType.id} title={itemType.name} value={itemType.id} />
+        ))}
+      </List.Dropdown.Section>
+    </List.Dropdown>
+  );
+}
+
+function fetchItems(searchText: string, filterItemType: string) {
   const searchParams = new URLSearchParams({
-    domain: "all_content",
     query: searchText.length === 0 ? "" : searchText,
     collapse: "true",
     limit: getPreferenceValues().numSearchResults,
@@ -21,12 +48,25 @@ export default function Command() {
   searchParams.append("expand", "breadcrumbs");
   searchParams.append("expand", "-body");
   searchParams.append("expand", "insertUser");
+  searchParams.append("types", filterItemType);
 
   const { data, isLoading } = useFetch("https://commercequest.space/api/v2/search?" + searchParams, {
     parseResponse: parseFetchResponse,
   });
 
+  return {
+    data,
+    isLoading,
+  };
+}
+
+export default function Command() {
+  const [searchText, setSearchText] = useState("");
+  const [filterItemType, setFilterItemType] = useState("");
+
   const emptyTitle = searchText.length === 0 ? "Recent topics" : "Search results";
+
+  const { data, isLoading } = fetchItems(searchText, filterItemType);
 
   return (
     <List
@@ -34,6 +74,7 @@ export default function Command() {
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search CommerceQuest forum..."
       throttle
+      searchBarAccessory={<ItemTypeDropdown itemTypes={itemTypes} onItemTypeChange={setFilterItemType} />}
     >
       <List.Section title={emptyTitle} subtitle={data?.length + ""}>
         {data?.map((searchResult: SearchResult) => (
@@ -76,6 +117,7 @@ async function parseFetchResponse(response: Response) {
     throw new Error("message" in json ? json.message : response.statusText);
   }
 
+  // @TODO import tagIds and display on Detail
   return json.map(
     (result: {
       breadcrumbs: Breadcrumb[];
@@ -86,7 +128,6 @@ async function parseFetchResponse(response: Response) {
       dateUpdated: string;
       dateInserted: string;
       url: string;
-      bodyPlainText: string;
       body: string;
       insertUser?: User;
     }) => {
@@ -129,7 +170,6 @@ async function parseFetchResponse(response: Response) {
         url: result.url,
         breadcrumbsFormatted: breadcrumbsFormatted,
         breadcrumbs: breadcrumbs,
-        bodyPlainText: result.bodyPlainText,
         body: result.body,
         insertUser: insertUser,
       } as SearchResult;
