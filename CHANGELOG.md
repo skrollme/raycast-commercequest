@@ -1,5 +1,8 @@
 # CommerceQuest.space Changelog
 
+## [Filter Searchresults by Type] - 2023-09-19
+- Added a Dropdown to filter Searchresults by Type  
+
 ## [Detail View] - 2023-09-18
 - Added a Detailview with a preview of a forum-thread
 
