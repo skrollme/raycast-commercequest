@@ -1,7 +1,7 @@
 import { SearchResult } from "../lib/types";
 import { Action, ActionPanel, List } from "@raycast/api";
 import { mapIconCode } from "../lib/utils";
-import Preview from "./Preview";
+import PreviewDetail from "./PreviewDetail";
 
 export default function SearchListItem({ searchResult }: { searchResult: SearchResult }) {
   const date = new Date(searchResult.dateUpdated ? searchResult.dateUpdated : searchResult.dateInserted);
@@ -18,7 +18,7 @@ export default function SearchListItem({ searchResult }: { searchResult: SearchR
           <ActionPanel.Section>
             <Action.OpenInBrowser url={searchResult.url} />
             {searchResult.type != "category" ? (
-              <Action.Push title="Preview" target={<Preview {...searchResult} />} />
+              <Action.Push title="PreviewDetail" target={<PreviewDetail {...searchResult} />} />
             ) : null}
           </ActionPanel.Section>
         </ActionPanel>

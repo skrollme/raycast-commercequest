@@ -3,7 +3,7 @@ import { useFetch } from "@raycast/utils";
 import { useState } from "react";
 import { URLSearchParams } from "node:url";
 
-import { Breadcrumb, User, SearchResult, ItemType, ItemGroup } from "./lib/types";
+import { Breadcrumb, SearchResult, ItemType, ItemGroup } from "./lib/types";
 import SearchListItem from "./components/SearchListItem";
 import ItemTypeDropdown from "./components/ItemTypeDropdown";
 
@@ -50,14 +50,16 @@ function fetchItems(searchText: string, filterItemType: string) {
     collapse: "true",
     limit: getPreferenceValues().numSearchResults,
     locale: "en",
+    types: filterItemType,
   });
+
   searchParams.append("expand", "breadcrumbs");
   searchParams.append("expand", "-body");
   searchParams.append("expand", "insertUser");
-  searchParams.append("types", filterItemType);
 
   return useFetch("https://commercequest.space/api/v2/search?" + searchParams, {
     parseResponse: parseFetchResponse,
+    keepPreviousData: true,
   });
 }
 
@@ -68,54 +70,32 @@ async function parseFetchResponse(response: Response) {
     throw new Error("message" in json ? json.message : response.statusText);
   }
 
-  return json.map(
-    (result: {
-      breadcrumbs: Breadcrumb[];
-      recordID: string;
-      name: string;
-      recordType: string;
-      type: string;
-      dateUpdated: string;
-      dateInserted: string;
-      url: string;
-      body: string;
-      insertUser?: User;
-    }) => {
-      let breadcrumbsFormatted = "";
-      const breadcrumbs: Breadcrumb[] = [];
-      if (result.breadcrumbs) {
-        // remove first breadcrumb because it is always "home"
-        result.breadcrumbs.shift();
+  return json.map((result: SearchResult) => {
+    let breadcrumbsFormatted = "";
+    const breadcrumbs: Breadcrumb[] = [];
+    if (result.breadcrumbs) {
+      // remove first breadcrumb because it is always "home"
+      result.breadcrumbs.shift();
 
-        // remove second one from array and add as start for breadcrumbs
-        const secondBreadcrumb = result.breadcrumbs.shift();
-        if (secondBreadcrumb) {
-          breadcrumbsFormatted = secondBreadcrumb.name;
-          breadcrumbs.push(secondBreadcrumb);
-        }
-
-        // append remaining breadcrumbs
-        result.breadcrumbs.forEach(function (breadcrumb: Breadcrumb) {
-          breadcrumbsFormatted = breadcrumbsFormatted + " » " + breadcrumb.name;
-          breadcrumbs.push(breadcrumb);
-        });
+      // remove second one from array and add as start for breadcrumbs
+      const secondBreadcrumb = result.breadcrumbs.shift();
+      if (secondBreadcrumb) {
+        breadcrumbsFormatted = secondBreadcrumb.name;
+        breadcrumbs.push(secondBreadcrumb);
       }
 
-      return {
-        recordID: result.recordID,
-        name: result.name,
-        recordType: result.recordType,
-        type: result.type,
-        dateUpdated: result.dateUpdated,
-        dateInserted: result.dateInserted,
-        url: result.url,
-        breadcrumbsFormatted: breadcrumbsFormatted,
-        breadcrumbs: breadcrumbs,
-        body: result.body,
-        insertUser: result.insertUser ? (result.insertUser as User) : null,
-      } as SearchResult;
+      // append remaining breadcrumbs
+      result.breadcrumbs.forEach(function (breadcrumb: Breadcrumb) {
+        breadcrumbsFormatted = breadcrumbsFormatted + " » " + breadcrumb.name;
+        breadcrumbs.push(breadcrumb);
+      });
     }
-  );
+
+    result.breadcrumbs = breadcrumbs;
+    result.breadcrumbsFormatted = breadcrumbsFormatted;
+
+    return result;
+  });
 }
 
 function groupItemsByDate(searchResults: SearchResult[]) {
